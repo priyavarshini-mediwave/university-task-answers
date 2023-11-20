@@ -1,0 +1,82 @@
+➜  ~ docker ps -a
+
+➜  ~ docker exec -it d91ee5de8984 bash
+root@d91ee5de8984:/# psql -U postgres
+
+postgres=# create database University;
+CREATE DATABASE
+
+
+postgres=# \l
+                                               
+postgres=# \c university
+
+university=# create table colleges(college_id serial not null primary key ,college_name varchar);
+
+university=# create table courses(course_id serial not null primary key , course_name varchar);
+
+university=# create table course_college(ccid serial not null primary key,course_id integer references courses(course_id),clg_id integer references colleges(college_id));
+
+university=# create table subjects(subject_id serial not null primary key,subject_name varchar);
+
+                                         ^
+university=# create table course_subjects(csid serial not null primary key,course_id integer references courses(course_id),sub_id integer references subjects(subject_id)); 
+
+
+university=# create table semester(sem_id serial not null primary key,sem_no integer not null);
+
+                                                   ^
+university=# alter table course_subjects add column ccid integer references course_college(ccid);
+
+university=# alter table course_subjects drop column course_id;
+
+university=# create table students (std_id serial not null primary key,std_name varchar,csid integer references course_subjects(csid));
+
+university=# create table marks(mark_id serial not null primary key,std_id integer references students(std_id),sem_id integer references semester(sem_id),marks integer);
+
+
+                                                ^
+university=# alter table semester add column sem_type varchar;
+
+university=# alter table semester add column sem_month_year varchar;
+
+
+university=# alter table course_subjects drop column ccid;
+
+university=# alter table course_subjects add column course_id integer references courses(course_id);
+
+university=# alter table students drop column csid;
+
+university=# alter table students add column ccid integer references course_college(ccid);
+
+university=# alter table marks add column sub_id integer references course_subjects(csid);
+
+university=# alter table semester drop column sem_type;
+
+university=# alter table semester drop column sem_no;
+
+university=# alter table semester drop column sem_month_year;
+
+
+                                                 ^
+university=# alter table semester add column sem_month varchar;
+
+university=# alter table semester add sem_year integer;
+
+university=# alter table students add column dob date;
+
+                                                      ^
+university=# alter table students add column phone_no integer;
+
+university=# alter table students add column address varchar(100);
+
+university=# alter table students add column joining_batch integer;
+
+university=# alter table students drop column ccid;
+
+                                                         ^
+university=# alter table students add column course_id integer references courses(course_id);
+
+university=# alter table students add column college_id integer references colleges(college_id);
+
+
