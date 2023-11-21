@@ -1,13 +1,16 @@
--- 1.
+-- 1. get students count college wise
+
 select c.college_name, count(s.college_id) student_count from colleges c left join students s on c.college_id =s.college_id
 group by c.college_name ;
 
---2.
+--2.get students count in a college, course wise
+
 select colleges.college_name ,courses.course_name ,count(students.std_id)as std_count from colleges inner join course_college on colleges.college_id =course_college.clg_id inner join courses on courses.course_id =course_college.course_id 
 left join students on course_college.clg_id =students.college_id and courses.course_id=students.course_id 
 group by colleges.college_name ,courses.course_name order by colleges.college_name ,std_count desc
 
---3.
+--3.get the university rank holder across all courses(1 student)
+
 SELECT m.std_id, s.std_name , AVG(m.marks) AS mark ,c3.course_name, c.college_name 
 FROM marks m
 join students  s on s.std_id = m.std_id  
@@ -23,7 +26,8 @@ HAVING AVG(marks) = (
     ) AS max_avg
 );
 
---4.
+--4.get the list of rank holders each course
+
  SELECT 
     std_id,
     std_name,
@@ -50,7 +54,8 @@ FROM (
 ) ranked_students 
 WHERE rank =1;
 
---5.
+--5.get the college topper across all courses
+
 select std_id ,std_name, college_name, mark AS average_marks,ranking
 from(
 	select m.std_id ,s.std_name, c.college_name, AVG(m.marks) AS mark,
@@ -61,7 +66,8 @@ join colleges c  on c.college_id = s.college_id
 group by m.std_id,s.std_name , c.college_name,c.college_id) student_ranks
 where ranking = 1 order by average_marks desc;
 
---6.
+--6.get the college toppers each course
+
 --select std_id ,std_name, college_name, mark AS average_marks,ranking,course_name 
 --from(
 --	select m.std_id ,s.std_name, c.college_name, AVG(m.marks) AS mark,c2.course_name ,
@@ -85,7 +91,9 @@ join courses c2 on c2.course_id = s.course_id
 group by m.std_id,s.std_name , c.college_name,c.college_id,c2.course_name) student_ranks
 where ranking = 1 order by average_marks desc;
 
---7.
+--7. get the failed students count each subject 
+
+
 --SELECT s2.subject_name, COUNT(m.std_id) AS num_failed_students
 --FROM marks m
 --JOIN subjects s2  ON m.sub_id  = s2.subject_id
@@ -101,14 +109,18 @@ GROUP BY s2.subject_name;
 --insert into marks (std_id,sem_id,marks,sub_id) values (7,1,25,5);
 --insert into marks (std_id,sem_id,marks,sub_id) values (7,1,-1,6);
 
---8.
+--8.get over all students list with semester marks 
+
+
  SELECT m.std_id , s.std_name, AVG(m.marks) AS mark ,c2.course_name
 FROM marks m
 join students s  on s.std_id  = m.std_id 
 join courses c2  on c2.course_id = s.course_id 
 GROUP BY m.std_id ,s.std_name ,c2.course_name;
 
---9.
+--9.get the student list who wasnt appear to the exams
+
+
 SELECT s.std_id , s.std_name 
 FROM students s 
 LEFT JOIN marks m ON s.std_id  = m.std_id 
@@ -124,12 +136,14 @@ group by s.std_name ,s.std_id ;
 --insert into marks (std_id,sem_id,marks,sub_id) values (12,1,55,5),(12,1,35,6)
 
 
--- Task 3
+                                                                           ---- Task 3----
 
---1,
+--1,update the mark to 40 those who were scored the marks between 35 to 39
 
 update marks set "marks"=40 where marks between 35 and 39
---3,
+
+--3,choose any select query from tast 2 and insert the values into a temp table
+
 --SELECT
 --    select_list
 --INTO [ TEMPORARY | TEMP | UNLOGGED ] [ TABLE ] new_table_name
@@ -140,16 +154,20 @@ update marks set "marks"=40 where marks between 35 and 39
 
 
 --taking query 9 from task 2
+
 select s.std_id,s.std_name into temporary table temp_table from students s LEFT JOIN marks m ON s.std_id  = m.std_id 
 WHERE m.marks = -1 OR m.marks IS NULL
 group by s.std_name ,s.std_id ;
 
 select * from temp_table;
---6,
+
+--6,remove the duplicate values in the mark table(insert values for your convenient)
 
 insert into marks (std_id,sem_id,marks,sub_id) values (11,1,98,21),(11,1,99,22),(11,1,55,23),(11,1,100,24)
 insert into marks (std_id,sem_id,marks,sub_id) values (12,1,56,5),(12,1,35,6)
+
 select * from marks 
+
 --DELETE  FROM
 --    basket a
 --        USING basket b
@@ -158,7 +176,10 @@ select * from marks
 --    AND a.fruit = b.fruit;
 --delete from marks m1 using marks m2 where m1.mark_id > m2.mark_id and m1.marks = m2.marks
 --select * from marks 
+
+
 insert into marks (mark_id ,std_id,sem_id,marks,sub_id) values (27,11,1,98,21),(28,11,1,99,22),(29,11,1,97,23),(30,11,1,100,24)
+
 --delete from marks where mark_id =33
 
 --DELETE FROM table_name
@@ -183,15 +204,19 @@ from marks )t
 WHERE t.row_num > 1 );
 
 select  * from marks m 
-commit
 
+commit
+---------------------------------------------------
 update marks set "marks" = 35 where mark_id = 26 returning *;
 
 begin transaction ;
 	update marks set "marks" =98  where "marks" = 99 returning *;
 
 rollback;
---2,
+-------------------------
+
+--2, get the history of marks that are changed
+
 CREATE TABLE marks_history (
     history_id SERIAL PRIMARY KEY,
     std_id INT,
@@ -237,7 +262,8 @@ update marks set marks = 97 where mark_id =5;
 
 select * from marks_history 
 
---5,
+--5,alter all the tables add audit columns 
+
 ALTER TABLE marks 
 ADD COLUMN createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 ADD COLUMN createBy VARCHAR default current_user,
@@ -253,7 +279,8 @@ update marks set marks = 99 where mark_id =5;
 -----
 
 
---4,
+--4,delete a college and its respective things
+
 --ALTER TABLE Cars ADD CONSTRAINT clr_prmrykey PRIMARY KEY ( Color);
 
 
