@@ -35,7 +35,7 @@ university=# create table students (std_id serial not null primary key,std_name 
 university=# create table marks(mark_id serial not null primary key,std_id integer references students(std_id),sem_id integer references semester(sem_id),marks integer);
 
 
-                                                ^
+                                                
 university=# alter table semester add column sem_type varchar;
 
 university=# alter table semester add column sem_month_year varchar;

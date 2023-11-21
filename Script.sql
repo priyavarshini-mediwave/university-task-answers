@@ -191,3 +191,99 @@ begin transaction ;
 	update marks set "marks" =98  where "marks" = 99 returning *;
 
 rollback;
+--2,
+CREATE TABLE marks_history (
+    history_id SERIAL PRIMARY KEY,
+    std_id INT,
+    old_marks INT,
+    new_marks INT,
+    subject_id INT,
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    changed_by VARCHAR(50),
+    status varchar
+);
+/*
+drop table marks_history 
+
+DROP TRIGGER IF EXISTS audit_marks ON marks;
+DROP TRIGGER IF EXISTS marks_audit_trigger ON marks;
+*/
+CREATE OR REPLACE FUNCTION audit_marks()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'INSERT') THEN
+        INSERT INTO marks_history (std_id, old_marks, new_marks, subject_id, changed_by, status)
+        VALUES (NEW.std_id, NULL, NEW.marks, NEW.sub_id, current_user, 'INSERT');
+
+    ELSIF (TG_OP = 'UPDATE') THEN
+        INSERT INTO marks_history (std_id, old_marks, new_marks, subject_id, changed_by, status)
+        VALUES (OLD.std_id, OLD.marks, NEW.marks, OLD.sub_id, current_user, 'UPDATE');
+
+    ELSIF (TG_OP = 'DELETE') THEN
+        INSERT INTO marks_history (std_id, old_marks, new_marks, subject_id, changed_by, status)
+        VALUES (OLD.std_id, OLD.marks, NULL, OLD.sub_id, current_user, 'DELETE');
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER marks_audit_trigger
+AFTER INSERT OR UPDATE OR DELETE ON marks
+FOR EACH ROW EXECUTE FUNCTION audit_marks();
+
+update marks set marks = 97 where mark_id =5;
+
+select * from marks_history 
+
+--5,
+ALTER TABLE marks 
+ADD COLUMN createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN createBy VARCHAR default current_user,
+ADD COLUMN updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
+ADD COLUMN updatedBy VARCHAR default current_user;
+
+update marks set marks = 99 where mark_id =5;
+----
+--begin transaction ;
+--	update marks set "marks" =10 where mark_id  = 1;
+--	select * from marks m 
+--rollback;
+-----
+
+
+--4,
+--ALTER TABLE Cars ADD CONSTRAINT clr_prmrykey PRIMARY KEY ( Color);
+
+
+ALTER TABLE course_college
+DROP CONSTRAINT course_college_clg_id_fkey;
+
+
+ALTER TABLE course_college
+ADD CONSTRAINT course_college_clg_id_fkey
+FOREIGN KEY (clg_id) REFERENCES colleges(college_id) ON DELETE CASCADE;
+
+
+ALTER TABLE students 
+DROP CONSTRAINT students_college_id_fkey
+
+ALTER TABLE students 
+ADD CONSTRAINT students_college_id_fkey
+FOREIGN KEY (college_id) REFERENCES colleges(college_id) ON DELETE CASCADE;
+
+ALTER TABLE marks  
+DROP CONSTRAINT marks_std_id_fkey;
+
+ALTER TABLE marks  
+ADD CONSTRAINT marks_std_id_fkey
+FOREIGN KEY (std_id) REFERENCES students(std_id) ON DELETE CASCADE;
+
+begin transaction;
+delete from colleges where college_id =1;
+select * from colleges c 
+select * from students s order by std_name
+select * from marks m 
+commit;
+--rollback;
